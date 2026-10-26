@@ -1,0 +1,1352 @@
+# MASTER BUILD PROMPT: YOUR WEB PAGE
+## Complete production-ready website using a single dynamic route, reusable content blocks, and a CMS-ready architecture
+
+You are a senior Next.js engineer, software architect, UI/UX designer, brand designer, SEO specialist, cloud hosting engineer, accessibility specialist, security engineer, and technical writer.
+
+Your job is to build the entire production-ready website for **Your Web Page**, a trade name of **NightTech Service Inc.**
+
+Do not deliver a proposal, wireframe, incomplete demo, or homepage-only template. Build the real application, write the page content, create the design system and logo, implement the working components, test the code, and prepare the project for deployment.
+
+The website must be designed for real customers, easy for a future developer to maintain, and structured so the content can later be moved into a CMS with minimal changes to the rendering system.
+
+The most important architectural requirement is:
+
+**Use one optional catch-all page route to render all public content pages from reusable blocks and centralized page data.**
+
+---
+
+# PART 1 — THE REQUIRED ARCHITECTURE
+
+## 1. One dynamic route for all public content pages
+
+Use the Next.js App Router with this route:
+
+`src/app/[[...slug]]/page.tsx`
+
+This is the only page route for the public, content-driven website.
+
+It must handle:
+
+- `/`
+- `/about`
+- `/services`
+- `/services/website-design`
+- `/services/web-development`
+- `/services/website-redesign`
+- `/services/ecommerce`
+- `/services/website-maintenance`
+- `/services/cms-integration`
+- `/services/seo`
+- `/services/serverless`
+- `/services/cron-jobs`
+- `/hosting`
+- `/hosting/shared-cloud-hosting`
+- `/hosting/dedicated-vm`
+- `/blog`
+- `/blog/how-to-plan-a-business-website`
+- `/contact`
+- `/request-a-quote`
+- `/faqs`
+- `/resources`
+- `/work`
+- All other approved service, solution, resource, legal, and regional pages.
+
+The actual route list must be driven by page data, not by manually creating a separate `page.tsx` for every URL.
+
+Consult the official Next.js routing documentation:
+
+https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes
+
+The optional catch-all route accepts zero or more URL segments. The root homepage must work when the slug is undefined or empty.
+
+## 2. Route behaviour
+
+Inside `src/app/[[...slug]]/page.tsx`:
+
+1. Read the route parameters using the correct current Next.js TypeScript types.
+2. Convert the segments into a normalized URL path.
+3. Resolve the matching published page from the content data source.
+4. Return a proper 404 response when the page does not exist or is not published.
+5. Load the page's metadata.
+6. Render its reusable content blocks in the correct order.
+7. Preserve server-side rendering and search-engine access.
+8. Support nested routes.
+9. Avoid hydration errors and unnecessary client-side rendering.
+
+For current Next.js App Router versions, handle `params` using the supported asynchronous API.
+
+Do not use outdated routing examples without checking compatibility with the installed Next.js version.
+
+## 3. Keep the route thin
+
+The dynamic route must not contain the homepage copy, hosting descriptions, blog articles, form markup, or individual service layouts.
+
+Its job is to connect the URL, page data, metadata, and block renderer.
+
+Use a structure similar to:
+
+`src/app/[[...slug]]/page.tsx`
+
+`src/lib/data.ts`
+
+`src/lib/pages.ts`
+
+`src/lib/blocks.tsx`
+
+`src/lib/metadata.ts`
+
+`src/components/blocks/`
+
+`src/components/forms/`
+
+`src/components/layout/`
+
+`src/components/ui/`
+
+The exact file structure may be adjusted when technically justified, but there must be one clear source of truth for page content and one shared renderer for public page blocks.
+
+Do not create duplicate page definitions in multiple files.
+
+## 4. Important distinction: data and components
+
+`src/lib/data.ts` must contain the content data and page definitions, not React components.
+
+Do not put JSX components directly inside the data file.
+
+Instead:
+
+- `data.ts` defines page records and their block data.
+- `blocks.tsx` maps block types to their React components.
+- Individual block components render their content.
+- `page.tsx` resolves the URL and invokes the renderer.
+- `metadata.ts` creates the correct page metadata from the same page record.
+- A content-source interface allows the local data source to be replaced by a CMS later.
+
+This separation is mandatory.
+
+Use typed data structures and stable block identifiers. Do not use arbitrary executable code stored in content.
+
+## 5. Example of the required rendering model
+
+Use this as an architectural example, not as a complete implementation:
+
+```tsx
+// src/app/[[...slug]]/page.tsx
+
+import { notFound } from "next/navigation";
+import { getPageByPath } from "@/lib/pages";
+import { BlockRenderer } from "@/lib/blocks";
+import { buildMetadata } from "@/lib/metadata";
+
+export default async function DynamicPage({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}) {
+  const { slug = [] } = await params;
+  const path = slug.length === 0 ? "/" : `/${slug.join("/")}`;
+
+  const page = await getPageByPath(path);
+
+  if (!page || page.status !== "published") {
+    notFound();
+  }
+
+  return (
+    <main>
+      <BlockRenderer blocks={page.blocks} />
+    </main>
+  );
+}
+```
+
+Adapt this example to the installed framework version and the final project's actual types. Connect metadata through the appropriate Next.js metadata API rather than hardcoding it into the page.
+
+Use a single canonical URL normalization function for both content lookup and metadata generation.
+
+## 6. All page content must be data-driven
+
+Every content-driven page must be defined through a page record.
+
+A page record should include fields such as:
+
+- `id`
+- `slug`
+- `path`
+- `title`
+- `description`
+- `status`
+- `template`
+- `seo`
+- `breadcrumbs`
+- `blocks`
+- `publishedAt`, when relevant
+- `updatedAt`, when relevant
+- `redirectFrom`, when needed
+
+Use strongly typed TypeScript types.
+
+Use unique IDs for blocks.
+
+The `template` field may identify a general layout, but it must not require a separate coded page for each service.
+
+A blog article must be created through its data record and article blocks, not a new route component.
+
+## 7. Shared layouts
+
+Keep the shared application shell separate from the public page content.
+
+Use the root layout for global concerns such as:
+
+- HTML document setup.
+- Global CSS.
+- Font loading.
+- Theme provider.
+- Global header and footer.
+- Default metadata.
+- Accessible page structure.
+
+The single dynamic route renders the content within that shell.
+
+Do not put the header and footer into every page record.
+
+Do not duplicate the navigation on individual service pages.
+
+The header, footer, navigation, and theme controls must be shared components.
+
+## 8. Other technical routes
+
+The one-page-route requirement applies to public content pages, not every HTTP endpoint in the application.
+
+Working contact forms, quote forms, security features, redirects, sitemaps, robots rules, and other required server functionality may use the appropriate Next.js route handlers or framework conventions.
+
+Do not create separate public `page.tsx` files for each content URL.
+
+Ensure there are no conflicting route files that prevent the optional catch-all route from working.
+
+---
+
+# PART 2 — THE REUSABLE BLOCK SYSTEM
+
+## 9. Build a complete block library
+
+The website must be assembled from reusable blocks.
+
+A page should be a sequence of data records describing which blocks to display and what content each block receives.
+
+Create reusable blocks for at least the following:
+
+### Main content blocks
+
+1. Hero.
+2. Page introduction.
+3. Rich text.
+4. Heading and paragraph.
+5. Image with text.
+6. Full-width image.
+7. Image gallery.
+8. Feature grid.
+9. Service grid.
+10. Service list.
+11. Icon and text list.
+12. Benefits list.
+13. Steps or process.
+14. Numbered instructions.
+15. Two-column content.
+16. Split content.
+17. Callout.
+18. Quote or testimonial, using verified content only.
+19. FAQ list.
+20. FAQ accordion.
+21. Comparison table.
+22. Technology details.
+23. Hosting comparison.
+24. Related services.
+25. Related articles.
+26. Article list.
+27. Blog article body.
+28. Breadcrumbs.
+29. Contact information.
+30. Business hours.
+31. Service area list.
+32. Social links.
+33. Call to action.
+34. Divider.
+35. Logo strip, using approved assets only.
+36. Notice or announcement.
+37. Download or resource link.
+38. Empty-state block.
+39. Final conversion section.
+
+### Form blocks
+
+Create reusable form components for:
+
+- Contact form.
+- Request a Quote form.
+- Newsletter signup, only if a real newsletter service is configured.
+- General enquiry form.
+- Optional callback request.
+
+The contact and quote forms must share common field components, validation, accessibility rules, and submission logic where appropriate.
+
+Do not build every form from scratch.
+
+### Layout and presentation blocks
+
+Create reusable components for:
+
+- Section containers.
+- Box grids.
+- Border panels.
+- Section headings.
+- Section labels.
+- Responsive columns.
+- Card grids.
+- Tables.
+- Buttons.
+- Badges where meaningful.
+- Pagination.
+- Search and filtering for blog content, if implemented.
+- Empty states.
+- Loading states.
+- Error states.
+
+Do not create an enormous collection of nearly identical components. Reuse a shared component when the behaviour and purpose are genuinely the same.
+
+## 10. Block data format
+
+Define a discriminated union for block data.
+
+For example:
+
+```ts
+type HeroBlock = {
+  id: string;
+  type: "hero";
+  eyebrow?: string;
+  heading: string;
+  description: string;
+  primaryAction?: {
+    label: string;
+    href: string;
+  };
+  secondaryAction?: {
+    label: string;
+    href: string;
+  };
+};
+
+type RichTextBlock = {
+  id: string;
+  type: "richText";
+  heading?: string;
+  content: RichTextContent;
+};
+
+type ServiceGridBlock = {
+  id: string;
+  type: "serviceGrid";
+  heading: string;
+  description?: string;
+  serviceIds: string[];
+};
+```
+
+Create equivalent well-defined types for all supported blocks.
+
+Use a safe, structured rich-text format, such as a typed content tree, rather than accepting arbitrary JSX or untrusted HTML.
+
+If Markdown or MDX is used for blog content, process it safely and do not allow arbitrary code execution from content records.
+
+## 11. Block renderer
+
+Create one central `BlockRenderer`.
+
+It must:
+
+- Accept an array of typed block records.
+- Select the correct component by `type`.
+- Pass only the required props.
+- Preserve the order of blocks.
+- Use stable keys.
+- Handle invalid block types safely.
+- Provide clear development-time errors.
+- Avoid silently hiding broken content.
+- Support server-rendered blocks wherever possible.
+- Use client components only when interaction requires them.
+
+For example, a `hero` block renders the Hero component, a `faqList` block renders the FAQ component, and a `contactForm` block renders the Contact Form component.
+
+Do not use giant nested conditional expressions for the entire renderer.
+
+Keep the block registry clear, typed, and maintainable.
+
+## 12. Reusable forms must be real forms
+
+A form block is not a decorative design.
+
+It must include:
+
+- Correct labels.
+- Required-field rules.
+- Input validation.
+- Accessible errors.
+- Loading state.
+- Submission handling.
+- Success state after actual success.
+- Failure state.
+- Spam protection.
+- Server-side validation.
+- Rate limiting where appropriate.
+- Privacy information.
+
+A form's appearance and field definitions may be configured by page data, but server-side validation and security rules must not be controlled by untrusted content.
+
+Do not let a CMS record supply arbitrary API URLs or arbitrary server actions.
+
+---
+
+# PART 3 — THE DATA SOURCE AND FUTURE CMS MIGRATION
+
+## 13. `src/lib/data.ts` is the initial content source
+
+Create `src/lib/data.ts` as the central place for the initial public page records, service definitions, blog articles, navigation data, and other structured content where appropriate.
+
+Avoid scattering page text across components.
+
+Keep the business contact information and global settings in a separate central configuration file if that makes the project clearer.
+
+The data source must be the source of truth for the initial pages.
+
+For example, the homepage record should define its ordered blocks, headings, descriptions, buttons, and related content.
+
+A hosting page should define its own content blocks.
+
+A blog article should define its article data.
+
+Do not repeat the same contact details in dozens of files.
+
+## 14. Separate content access from content storage
+
+Build a content-source interface so the website is not tightly coupled to `data.ts`.
+
+For example:
+
+```ts
+export interface ContentSource {
+  getPageByPath(path: string): Promise<PageRecord | null>;
+  getAllPublishedPages(): Promise<PageRecord[]>;
+  getPublishedArticles(): Promise<ArticleRecord[]>;
+  getArticleBySlug(slug: string): Promise<ArticleRecord | null>;
+}
+```
+
+The local implementation can read the initial data in `src/lib/data.ts`.
+
+Later, a CMS implementation can fetch the same types from a remote content system.
+
+The route and block renderer should not need to know whether content came from a local TypeScript file, a database, or a CMS.
+
+Use a suitable adapter, such as:
+
+- `src/lib/content/source.ts`
+- `src/lib/content/local-source.ts`
+- `src/lib/content/cms-source.ts`
+
+These are examples of organization, not a requirement to create unnecessary empty files.
+
+The initial local source must be complete and functional.
+
+Do not require a CMS account or API key to run the website locally.
+
+## 15. Make future CMS migration practical
+
+Design the data model so a future CMS can store:
+
+- Pages.
+- Articles.
+- Services.
+- Navigation.
+- Reusable block types.
+- SEO metadata.
+- Images.
+- Image alt text.
+- Publication status.
+- Publication dates.
+- Updated dates.
+- Redirects.
+- Related content.
+- Reusable calls to action.
+
+Use stable IDs and slugs.
+
+Do not make internal data relationships depend entirely on array positions.
+
+Keep content and presentation separate.
+
+The future migration should primarily require replacing the content-source adapter, mapping CMS fields to the existing types, and configuring credentials.
+
+Do not claim that every CMS will work automatically. Document the mapping that a future CMS integration will need.
+
+Do not implement a fake admin panel.
+
+Do not build a custom CMS unless specifically required.
+
+Do not create a customer login or database merely to store the initial static content.
+
+## 16. Content validation
+
+Validate page records before rendering.
+
+Check for:
+
+- Duplicate paths.
+- Duplicate IDs.
+- Invalid slugs.
+- Missing required titles.
+- Missing descriptions where required.
+- Invalid internal links.
+- Unknown block types.
+- Missing required block properties.
+- Unpublished pages exposed publicly.
+- Duplicate article slugs.
+- Broken related-content references.
+
+Create a development-time validation script or automated tests.
+
+A malformed content record should be reported clearly rather than creating a broken public page.
+
+---
+
+# PART 4 — BUSINESS IDENTITY AND CONTACT INFORMATION
+
+## 17. Use these exact business details
+
+Public brand: **Your Web Page**
+
+Legal relationship: **Your Web Page is a trade name of NightTech Service Inc.**
+
+Website: `https://yourwebpage.ca`
+
+Email: `hello@yourwebpage.ca`
+
+Phone: `902-629-9691`
+
+Telephone link: `tel:+19026299691`
+
+Email link: `mailto:hello@yourwebpage.ca`
+
+Address:
+
+44 Beach Grove Road, Unit 3  
+Charlottetown, PE C1E 1Y5  
+Canada
+
+Primary market: Prince Edward Island.
+
+Wider target market: Nova Scotia, New Brunswick, and Newfoundland and Labrador.
+
+All visits are by appointment only.
+
+## 18. Appointment hours
+
+Use `America/Halifax` for appointment times.
+
+- Monday: 1:00 PM–8:00 PM.
+- Tuesday: 1:00 PM–8:00 PM.
+- Wednesday: 1:00 PM–8:00 PM.
+- Thursday: 1:00 PM–8:00 PM.
+- Friday: No appointments.
+- Saturday: 1:00 PM–8:00 PM.
+- Sunday: 1:00 PM–8:00 PM.
+
+Display the message:
+
+**Visits by appointment only. Please contact us before visiting.**
+
+Do not imply walk-in availability.
+
+Do not invent an online appointment system.
+
+Before launch, confirm the exact address, phone number, and contact details against the business's current records.
+
+## 19. Social media links
+
+Use the supplied profile URLs:
+
+- Facebook: `https://facebook.com/yourwebpage`
+- Instagram: `https://instagram.com/yourwebpage`
+- LinkedIn: `https://linkedin.com/yourwebpage`
+
+Check each link before launch. If a profile does not exist or redirects incorrectly, report it.
+
+Do not invent social posts, follower counts, or engagement data.
+
+## 20. Pricing policy
+
+Never display public prices.
+
+No hourly rates, monthly fees, starting prices, price ranges, discounts, pricing tables, or sample amounts.
+
+Use a quote-based model.
+
+Suggested message:
+
+"Tell us what you need, and we will discuss a suitable solution and provide a quote."
+
+Do not place a price in page data, metadata, structured data, or blog content.
+
+An optional private budget field is permitted on the Request a Quote form.
+
+---
+
+# PART 5 — BRAND AND VISUAL DESIGN
+
+## 21. Create a boxy monochrome design
+
+Use black, white, and grey as the main colours.
+
+Suggested tokens:
+
+- Black: `#111111`
+- Dark panel: `#1D1D1D`
+- Dark grey: `#2B2B2B`
+- Mid grey: `#777777`
+- Border grey: `#D0D0D0`
+- Light grey: `#F2F2F2`
+- White: `#FFFFFF`
+- Dark-theme border: `#414141`
+- Muted dark-theme text: `#B5B5B5`
+
+Use CSS variables or a central design-token system.
+
+The design must use:
+
+- Rectangular sections.
+- Clean grids.
+- Thin borders.
+- Strong alignment.
+- Simple typography.
+- Generous but controlled spacing.
+- Clear navigation.
+- Square or nearly square corners.
+- Useful comparison tables.
+- Readable article layouts.
+- Simple monochrome icons.
+- Clear calls to action.
+
+Do not use bright gradients, neon colours, random decorative shapes, excessive shadows, or generic AI-template patterns.
+
+The website should feel like a carefully designed business, not a generated theme.
+
+## 22. Theme support
+
+Implement:
+
+- Auto.
+- Light.
+- Dark.
+
+Auto follows the visitor's device preference.
+
+Manual selections persist between visits.
+
+Prevent avoidable theme flashing and hydration problems.
+
+Ensure that all blocks, forms, tables, navigation, menus, footer elements, logo variants, and buttons work in all themes.
+
+## 23. Original logo
+
+Create an original geometric logo for Your Web Page.
+
+Use a distinctive square or rectangular mark inspired by page layouts, frames, or an abstract Y/YP monogram.
+
+Keep it simple, recognizable, and usable at small sizes.
+
+Do not use a generic stock logo or copy another brand.
+
+Generate actual files:
+
+- `public/brand/logo.svg`
+- `public/brand/logo-light.svg`
+- `public/brand/logo-dark.svg`
+- `public/brand/mark.svg`
+- `public/favicon.svg`
+- Suitable app icons.
+- Social-sharing preview image.
+
+The SVGs must be real, usable vector assets with correct spelling.
+
+Use Your Web Page as the main wordmark. Display the legal company name separately in the appropriate footer and legal content.
+
+Do not leave a placeholder where the logo should be.
+
+---
+
+# PART 6 — FULL WEBSITE CONTENT
+
+Populate the content source with the following public pages.
+
+Every page must be created from the same page-data and block-rendering system.
+
+Do not create separate coded page components for individual URLs.
+
+## 24. Main pages
+
+Create:
+
+- `/` — Homepage.
+- `/about` — About the business.
+- `/services` — Services directory.
+- `/work` — Portfolio or work overview.
+- `/resources` — Useful resources.
+- `/blog` — Blog index.
+- `/contact` — Contact page.
+- `/request-a-quote` — Quote request form.
+- `/faqs` — Frequently asked questions.
+- `/how-we-work` — Process explanation.
+- `/privacy` — Privacy policy.
+- `/terms` — Terms.
+- `/cookies` — Cookie information where relevant.
+- `/accessibility` — Accessibility information.
+
+Use these pages to explain the business clearly.
+
+Do not invent a company history, awards, qualifications, customer reviews, project results, or staff biographies.
+
+If real portfolio material is unavailable, provide a truthful explanation of the types of projects the business can help with.
+
+## 25. Homepage content
+
+Use the headline:
+
+**Your website should make business easier.**
+
+Suggested supporting text:
+
+"Your Web Page helps businesses build, improve, host, and maintain their websites. Whether you need a new site, help with an existing one, or a way to make everyday tasks easier, we can discuss a suitable solution."
+
+Main actions:
+
+- Request a Quote.
+- Explore Our Services.
+
+Build the homepage from reusable blocks:
+
+1. Hero.
+2. Brief business introduction.
+3. Main service grid.
+4. Website design and development.
+5. Hosting options.
+6. Website maintenance.
+7. Search visibility.
+8. CMS and integrations.
+9. Automation and advanced features.
+10. How the process works.
+11. Helpful FAQs.
+12. Service area.
+13. Final call to action.
+
+Avoid repeating the same message in several blocks.
+
+Do not lead with Next.js or technical terms.
+
+## 26. Website services
+
+Create the following pages:
+
+- `/services/website-design`
+- `/services/web-development`
+- `/services/website-redesign`
+- `/services/ecommerce`
+- `/services/web-applications`
+- `/services/website-repairs`
+- `/services/website-migration`
+- `/services/nextjs-development`
+- `/services/cms-integration`
+- `/services/headless-cms`
+- `/services/wordpress`
+- `/services/seo`
+- `/services/local-seo`
+- `/services/speed-optimization`
+- `/services/website-maintenance`
+- `/services/website-security`
+- `/services/serverless`
+- `/services/cron-jobs`
+- `/services/api-integration`
+- `/services/business-automation`
+- `/services/ai-integration`
+- `/services/live-chat`
+
+Each page must have a distinct purpose and useful information.
+
+Explain:
+
+- What the service is.
+- What problem it addresses.
+- How it may help.
+- What the process involves.
+- What customers should consider.
+- Related services.
+- Common questions.
+- A clear way to request a quote.
+
+Do not guarantee rankings, uptime, security, performance scores, or business results.
+
+## 27. Hosting pages
+
+Create:
+
+- `/hosting`
+- `/hosting/shared-cloud-hosting`
+- `/hosting/dedicated-vm`
+- `/hosting/compare`
+- `/hosting/migrations`
+- `/hosting/backups`
+- `/hosting/management`
+
+All hosting must be cloud-based, not local or on-premises hosting.
+
+Explain shared cloud hosting in simple language.
+
+Explain dedicated virtual machines, their control, potential uses, maintenance needs, and limitations.
+
+Build a comparison block with:
+
+- Suitable website types.
+- Ease of setup.
+- Control.
+- Custom software.
+- Resources.
+- Scaling.
+- Maintenance.
+- Security responsibilities.
+- Factors affecting the quote.
+
+Do not invent hardware specifications, service guarantees, storage limits, bandwidth limits, or prices.
+
+## 28. Solutions pages
+
+Create:
+
+- `/solutions/small-business`
+- `/solutions/trades`
+- `/solutions/tourism-hospitality`
+- `/solutions/ecommerce-businesses`
+- `/solutions/non-profits`
+
+Explain the types of website features that may help these customers.
+
+Do not invent clients or completed projects.
+
+## 29. Regional pages
+
+Create:
+
+- `/service-areas/prince-edward-island`
+- `/service-areas/charlottetown`
+- `/service-areas/summerside`
+- `/service-areas/nova-scotia`
+- `/service-areas/new-brunswick`
+- `/service-areas/newfoundland-and-labrador`
+
+Write useful, truthful content for each area.
+
+Do not claim a physical office in every region.
+
+Do not create thin pages with the city name swapped into identical paragraphs.
+
+If a regional page cannot offer unique value, do not publish it simply to increase the page count.
+
+## 30. Resources and blog
+
+Create a working `/blog` page and individual article records.
+
+Start with helpful articles such as:
+
+- How to Plan a Business Website.
+- What to Consider Before Redesigning a Website.
+- What Website Hosting Does.
+- Shared Cloud Hosting vs a Dedicated VM.
+- How a CMS Makes Website Updates Easier.
+- Why Website Maintenance Matters.
+- How Local SEO Helps Customers Find a Business.
+- What a Cron Job Does.
+- What Serverless Functions Are.
+- How to Prepare for a Website Migration.
+
+Every article should have:
+
+- A unique slug.
+- A title.
+- A useful summary.
+- Body content.
+- Publication status.
+- Publication date.
+- Updated date when appropriate.
+- Author information only where verified.
+- Featured image and alt text where applicable.
+- SEO metadata.
+- Related content.
+
+Do not publish filler articles, keyword-stuffed paragraphs, or repetitive content.
+
+Do not invent statistics or customer examples.
+
+## 31. Individual article routes
+
+Individual article URLs must resolve through the same optional catch-all route.
+
+For example:
+
+`/blog/how-to-plan-a-business-website`
+
+The article should be a data record with an article layout or an ordered collection of article-related blocks.
+
+Do not create `src/app/blog/[slug]/page.tsx`.
+
+The blog index and article pages must use the same content-source abstraction as the rest of the site.
+
+---
+
+# PART 7 — FORMS AND CUSTOMER CONTACT
+
+## 32. Contact form block
+
+Build a working Contact form with:
+
+- Name.
+- Email.
+- Subject.
+- Message.
+- Appropriate privacy acknowledgement.
+
+Validate all fields.
+
+Display clear errors.
+
+Provide accessible success and failure states.
+
+## 33. Request a Quote form block
+
+Build a working form with:
+
+- Name.
+- Business name, optional.
+- Email.
+- Phone, optional.
+- Requested service.
+- Multiple service selections where suitable.
+- Whether the customer has an existing website.
+- Current website URL, optional.
+- Project goals.
+- Required features.
+- Optional budget range.
+- Optional desired timing.
+- Additional details.
+- Privacy acknowledgement.
+
+No submitted customer details may appear publicly.
+
+## 34. Form submission
+
+Use a real email or form-delivery service.
+
+The intended business contact is `hello@yourwebpage.ca`.
+
+Verify the actual sending setup before claiming email delivery works.
+
+Keep secrets in environment variables.
+
+Include `.env.example` with variable names and explanations but no real credentials.
+
+Implement server-side validation, rate limiting where appropriate, spam protection, safe error handling, and proper submission states.
+
+Never display a successful submission message if the request failed.
+
+Never silently discard submissions.
+
+If external credentials are missing, finish the implementation and document the exact remaining setup.
+
+---
+
+# PART 8 — TECHNOLOGY AND CODE QUALITY
+
+## 35. Technology stack
+
+Use:
+
+- Next.js App Router.
+- React.
+- TypeScript.
+- Tailwind CSS.
+- Strict TypeScript settings.
+- Reusable UI components.
+- Server Components by default.
+- Client Components only when needed.
+- A maintained theme solution where appropriate.
+- A safe validation library where useful.
+- Appropriate test tools.
+
+Use current stable, mutually compatible package versions.
+
+Inspect the existing repository before replacing configuration or dependencies.
+
+Do not unnecessarily rebuild working features.
+
+## 36. Code quality
+
+Write maintainable code with clear names and simple responsibilities.
+
+Avoid:
+
+- Huge page components.
+- Repeated content in multiple files.
+- Unnecessary dependencies.
+- Giant conditional renderers.
+- Unchecked type assertions.
+- Untrusted HTML injection.
+- Arbitrary code execution from content.
+- Fake API integrations.
+- Hardcoded secrets.
+- Placeholder links.
+- Empty pages disguised as complete pages.
+- Unused components.
+
+The block system should make adding a page straightforward.
+
+For example, adding a new service page should usually involve creating a new page record, selecting existing blocks, adding the content, and optionally adding a new block type if a genuinely new presentation is needed.
+
+It should not require creating a new route component.
+
+---
+
+# PART 9 — SEO AND SEARCH VISIBILITY
+
+## 37. Dynamic metadata
+
+Use the page record to generate metadata for every public content page.
+
+Implement the appropriate Next.js metadata API.
+
+Support:
+
+- Unique titles.
+- Unique descriptions.
+- Canonical URLs.
+- Open Graph metadata.
+- Social-sharing images.
+- Robots directives.
+- Appropriate indexation rules.
+
+Use `https://yourwebpage.ca` as the preferred domain.
+
+Do not duplicate titles or descriptions across all pages.
+
+Do not create fake reviews, price data, qualifications, or business facts for structured data.
+
+## 38. Technical SEO
+
+Implement and test:
+
+- XML sitemap.
+- Robots rules.
+- Canonical URLs.
+- Breadcrumbs.
+- Internal links.
+- Structured data where suitable.
+- Article metadata.
+- Organization data.
+- Website data.
+- Service data when appropriate.
+- Image optimization.
+- Correct heading structure.
+- Redirect handling.
+- Not-found responses.
+- Crawlable navigation.
+- Useful page descriptions.
+
+Generate the sitemap from published page records.
+
+Do not include unpublished pages, private form endpoints, preview URLs, or invalid routes.
+
+Ensure that pages are server-rendered and their main content is accessible without client-side JavaScript being required to discover the page text.
+
+Use structured data only where the content qualifies.
+
+Do not promise first-page rankings or a guaranteed Google result.
+
+Use Google Search Central guidance:
+
+https://developers.google.com/search/docs/fundamentals/creating-helpful-content
+
+https://developers.google.com/search/docs/essentials/spam-policies
+
+## 39. SEO for future CMS content
+
+When the CMS is added, ensure that each page's SEO data comes from its content record.
+
+Support publishing status and indexing rules.
+
+Provide a way to generate the sitemap from published records.
+
+Ensure canonical URLs are based on the correct normalized path.
+
+Do not allow draft content to be indexed.
+
+If a published page is removed or its slug changes, document the required redirect and sitemap update.
+
+---
+
+# PART 10 — ACCESSIBILITY, PERFORMANCE, AND SECURITY
+
+## 40. Accessibility
+
+Aim for WCAG 2.2 AA practices.
+
+Test:
+
+- Keyboard navigation.
+- Focus indicators.
+- Colour contrast.
+- Heading structure.
+- Form labels.
+- Error messages.
+- Screen-reader names.
+- Buttons and links.
+- Mobile navigation.
+- Theme controls.
+- Reduced-motion preferences.
+- Tables on narrow screens.
+
+Do not rely on colour alone to communicate meaning.
+
+## 41. Performance
+
+Optimize:
+
+- Images.
+- Fonts.
+- JavaScript.
+- CSS.
+- Caching.
+- Rendering.
+- Third-party scripts.
+
+Avoid unnecessary client-side code.
+
+Do not add animations without a clear purpose.
+
+Test the production build and run Lighthouse or an equivalent performance audit.
+
+Record actual results.
+
+Do not fabricate performance scores.
+
+## 42. Security
+
+Implement suitable protections for:
+
+- Form endpoints.
+- Server-side validation.
+- Rate limiting.
+- Environment variables.
+- Error handling.
+- External integrations.
+- Dependency vulnerabilities.
+- Content sanitization.
+- Security headers.
+- Personal data.
+
+Do not expose API keys.
+
+Do not promise perfect security.
+
+---
+
+# PART 11 — COMPONENT RESEARCH
+
+## 43. Research strong design references
+
+Before building the UI, inspect suitable components and design examples from:
+
+- https://ui.shadcn.com/
+- https://github.com/shadcn-ui/ui
+- https://21st.dev/
+- https://ui.aceternity.com/
+- https://magicui.design/
+- https://originui.com/
+- https://www.radix-ui.com/
+- https://tailwindcss.com/
+- https://nextjs.org/docs
+
+Search for relevant boxy layouts, monochrome service sites, forms, tables, navigation, article layouts, and reusable content blocks.
+
+Also search for KGC Designs to identify the intended reference, if it exists.
+
+Inspect source code and licences before reusing components.
+
+Adapt permitted source code into this project's design system.
+
+Do not copy an entire website or import a complete template without meaningful review.
+
+Do not claim to have inspected hundreds of thousands of components unless that is actually true.
+
+The objective is a coherent, original design with well-built components, not the largest possible collection of dependencies.
+
+---
+
+# PART 12 — TESTING THE SINGLE-ROUTE ARCHITECTURE
+
+## 44. Route tests
+
+Test that these URLs all work through the same dynamic page route:
+
+- `/`
+- `/about`
+- `/services`
+- `/services/website-design`
+- `/services/cms-integration`
+- `/hosting`
+- `/hosting/shared-cloud-hosting`
+- `/blog`
+- `/blog/how-to-plan-a-business-website`
+- `/contact`
+- `/request-a-quote`
+- `/faqs`
+- `/privacy`
+- `/terms`
+
+Verify that:
+
+- The root route works with no slug.
+- Nested slugs resolve correctly.
+- Unknown paths return a proper 404.
+- Unpublished pages are not publicly available.
+- Metadata matches the requested page.
+- The navigation links to valid paths.
+- Forms submit to the correct endpoints.
+- The header and footer appear consistently.
+- Light, dark, and auto themes work.
+- The main content is server-rendered.
+- There are no conflicting content page routes.
+- The sitemap contains published URLs only.
+
+## 45. Content tests
+
+Check for:
+
+- Duplicate paths.
+- Duplicate block IDs.
+- Invalid internal links.
+- Missing required page data.
+- Broken social links.
+- Missing metadata.
+- Missing image alt text.
+- Invalid block types.
+- Missing form configurations.
+- Unpublished content appearing publicly.
+- Incorrect legal or contact details.
+- Public pricing accidentally appearing.
+
+## 46. Build and quality checks
+
+Run the actual project scripts for:
+
+- Production build.
+- Type checking.
+- Linting.
+- Unit tests.
+- Integration tests where suitable.
+- End-to-end tests for important user journeys.
+
+Fix errors instead of merely reporting them.
+
+If a check cannot run because a required external credential or service is unavailable, state the exact limitation.
+
+Do not claim tests passed unless they were run successfully.
+
+---
+
+# PART 13 — PROJECT DELIVERY
+
+## 47. Required final project
+
+Deliver the complete working source code, including:
+
+- Single dynamic page route.
+- Central page data.
+- Content-source interface.
+- Reusable block registry.
+- All required block components.
+- Header and footer.
+- Original logo files.
+- All approved page records.
+- Blog content.
+- Working contact and quote forms.
+- Theme support.
+- SEO implementation.
+- Sitemap and robots rules.
+- Legal page drafts.
+- Environment example.
+- Tests.
+- README.
+- Deployment instructions.
+
+The final README must explain how to:
+
+1. Install dependencies.
+2. Run the website locally.
+3. Add a new page by editing the content data.
+4. Add or update a blog article.
+5. Reuse existing blocks.
+6. Create a new block when necessary.
+7. Configure form delivery.
+8. Configure environment variables.
+9. Build and test the production site.
+10. Deploy the application.
+11. Add a CMS later by replacing the content-source adapter.
+
+## 48. Example of adding a page in the future
+
+Document a process similar to:
+
+1. Open the page data file.
+2. Add a unique page record.
+3. Set the URL path and metadata.
+4. Add a list of reusable blocks.
+5. Fill each block with its content.
+6. Set the page to draft until ready.
+7. Publish the page.
+8. Verify the URL and sitemap.
+
+A future content editor should not need to create a new React route file for every page.
+
+When a CMS is connected, this same workflow should be moved to the CMS's page editor, subject to the capabilities of the chosen CMS.
+
+## 49. Final definition of success
+
+The project is complete only when:
+
+- There is one optional catch-all public content route.
+- All approved public content pages are driven by data.
+- The renderer uses reusable, typed blocks.
+- `data.ts` holds content rather than JSX.
+- The content source can be replaced by a CMS adapter.
+- Contact and quote forms use reusable form components.
+- All confirmed business details are consistent.
+- Public pricing is absent.
+- The website uses the custom monochrome logo and boxy design.
+- Auto, light, and dark themes work.
+- The site has useful, distinct content.
+- SEO metadata and sitemap are generated from page records.
+- Unknown routes return proper 404 responses.
+- The production build and relevant tests pass.
+- The code and documentation are complete.
+- No fake business claims or fabricated statistics are present.
+- All remaining external setup requirements are documented.
+
+**Final instruction: Build the entire website, not merely the architecture.**
+
+The architecture must support one dynamic route, reusable blocks, centralized content data, and future CMS migration while still delivering a complete, polished, customer-facing business website for Your Web Page, a trade name of NightTech Service Inc.

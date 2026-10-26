@@ -1,0 +1,6 @@
+{
+  "name": "Your Web Page",
+  "description": "Production-ready website for Your Web Page (trade name of NightTech Service Inc.), built with a single dynamic catch-all route, reusable content blocks, and CMS-ready architecture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
