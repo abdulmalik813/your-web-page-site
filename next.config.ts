@@ -1,4 +1,5 @@
-import type {NextConfig} from 'next';
+import { withPayload } from '@payloadcms/next/withPayload';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -11,12 +12,12 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'picsum.photos',
         port: '',
-        pathname: '/**', // This allows any path under the hostname
+        pathname: '/**',
       },
     ],
   },
   output: 'standalone',
   transpilePackages: ['motion'],
 };
+export default withPayload(nextConfig);
 
-export default nextConfig;
