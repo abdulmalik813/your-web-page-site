@@ -3,7 +3,7 @@ import { PageRecord } from "./types";
 import { normalizePath } from "./content";
 import { businessConfig } from "./business";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || businessConfig.siteUrl;
+const SITE_URL = businessConfig.siteUrl;
 
 /**
  * Builds standard Next.js Metadata for any published PageRecord.

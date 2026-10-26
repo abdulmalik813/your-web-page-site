@@ -4,7 +4,7 @@ export const businessConfig: BusinessConfig = {
   brandName: "Your Web Page",
   legalEntity: "NightTech Service Inc.",
   tradeNotice: "Your Web Page is a trade name of NightTech Service Inc.",
-  siteUrl: "https://yourwebpage.ca",
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL!,
   email: "hello@yourwebpage.ca",
   emailLink: "mailto:hello@yourwebpage.ca",
   phone: "902-629-9691",

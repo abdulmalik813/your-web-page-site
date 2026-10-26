@@ -3,7 +3,7 @@ import { getAllPublishedPages } from "@/lib/pages";
 import { normalizePath } from "@/lib/content";
 import { businessConfig } from "@/lib/business";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || businessConfig.siteUrl;
+const SITE_URL = businessConfig.siteUrl;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const publishedPages = await getAllPublishedPages();

@@ -45,12 +45,6 @@ export async function POST(req: NextRequest) {
     // Log the valid inquiry safely for server audit
     console.log(`[Contact Form Received] From: ${name} <${email}>, Subject: ${subject}`);
 
-    // If external email provider API key is configured (e.g. Resend, SendGrid), delivery logic executes here.
-    const apiKey = process.env.EMAIL_PROVIDER_API_KEY;
-    if (apiKey) {
-      console.log(`[Email Dispatch] Triggering external notification to hello@yourwebpage.ca via provider.`);
-    }
-
     return NextResponse.json({
       success: true,
       message: "Thank you for reaching out. Your message has been received by Your Web Page, and our team will reply within one business day.",

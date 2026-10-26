@@ -57,12 +57,6 @@ export async function POST(req: NextRequest) {
     // Log the valid quote request securely
     console.log(`[Quote Request Received] From: ${name} (${businessName || "Individual"}), Service: ${service}`);
 
-    // If external email provider API key is set, send dispatch
-    const apiKey = process.env.EMAIL_PROVIDER_API_KEY;
-    if (apiKey) {
-      console.log(`[Email Dispatch] Sending quote details to hello@yourwebpage.ca via provider.`);
-    }
-
     return NextResponse.json({
       success: true,
       message: "Thank you for requesting a quote. We have received your project details and will review your requirements to prepare a tailored, transparent proposal.",

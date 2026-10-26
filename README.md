@@ -235,9 +235,6 @@ The application includes working server-side API endpoints:
 - **Spam Bot Trap**: Hidden honeypot fields silently catch automated submissions.
 - **Privacy Compliance**: Submissions are strictly private and never displayed publicly.
 
-### Connecting an External Email Service:
-Set `EMAIL_PROVIDER_API_KEY` in `.env` (e.g. Resend, SendGrid, or Postmark). When configured, form submissions trigger outbound notifications to `hello@yourwebpage.ca`. In local development mode without an API key, valid submissions are logged to the console safely without errors.
-
 ---
 
 ## 8. Environment Variables
@@ -245,16 +242,8 @@ Set `EMAIL_PROVIDER_API_KEY` in `.env` (e.g. Resend, SendGrid, or Postmark). Whe
 Copy `.env.example` to `.env`:
 
 ```bash
-# Form Delivery (Optional external provider):
-EMAIL_PROVIDER_API_KEY="re_123456789"
-CONTACT_EMAIL_RECIPIENT="hello@yourwebpage.ca"
-
 # Public Site URL
 NEXT_PUBLIC_SITE_URL="https://yourwebpage.ca"
-
-# CMS Configuration (Optional when ready to connect headless CMS):
-CMS_API_URL=""
-CMS_READ_TOKEN=""
 ```
 
 ---
