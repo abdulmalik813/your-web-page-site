@@ -7,10 +7,18 @@ import { collections } from "@/collections";
 import { plugins } from "@/plugins";
 import { DATABASE_URI, EMAIL, PAYLOAD, TIMEZONES } from "@/constants/init";
 import { Users } from "@/collections/Users";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
 
 export default buildConfig({
   editor: lexicalEditor(),
   admin: {
+    importMap: {
+      baseDir: path.resolve(dirname),
+    },
     timezones: {
       supportedTimezones: [...TIMEZONES.SUPPORTED_TIMEZONES],
       defaultTimezone: TIMEZONES.DEFAULT_TIMEZONE,
