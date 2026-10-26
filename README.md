@@ -54,10 +54,10 @@ Built with Next.js 15 App Router, TypeScript, and Tailwind CSS using a **single 
 
 ## 1. Installation
 
-Ensure you have Node.js 18.18+ or 20+ installed.
+Ensure you have Node.js 18.18+ or 20+ and `pnpm` installed.
 
 ```bash
-npm install
+pnpm install
 ```
 
 ---
@@ -67,7 +67,7 @@ npm install
 Start the local development server:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -269,7 +269,7 @@ Verifies path normalization, content source resolution, duplicate path/ID checks
 
 ### Production Build
 ```bash
-npm run build
+pnpm build
 ```
 Compiles and statically optimizes all 60+ pages through the single dynamic route.
 
@@ -280,8 +280,8 @@ Compiles and statically optimizes all 60+ pages through the single dynamic route
 This application deploys seamlessly to standard cloud hosting:
 - **Vercel / Cloud Run / Netlify / Node VM**:
   ```bash
-  npm run build
-  npm run start
+  pnpm build
+  pnpm start
   ```
 
 ---
